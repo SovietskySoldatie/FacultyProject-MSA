@@ -2,16 +2,16 @@
 - [ ] Add specs & reqs & docs
     - [x] Add original specifications (`specs/original specs.txt`)
     - [x] Decompose specifications into formal specs (`specs/formal specs.md`)
-    - [ ] Add and decompose project requirements (`reqs/reqs.md`)
+    - [x] Add and decompose project requirements (`reqs/reqs.md`)
     - [ ] Add documentations (`docs`)
 - [ ] Define project architecture
     - [ ] Hardware-Software codesign partitioning
         - [ ] Identify hardware architecture and platform constraints (sensors, biometrics, hardware Keystore/TEE, power/lifecycle)
         - [ ] Define software architecture (presentation layer, crypto vault service, sensor panic manager, encrypted local repository)
             - [ ] Add UML diagrams for:
-                - [ ] Use cases
-                - [ ] Components
-                - [ ] Main states
+                - [x] Use cases (`reqs/reqs.md`)
+                - [x] Components (`reqs/reqs.md`)
+                - [x] Main states (`reqs/reqs.md`)
                 - [ ] Sequence flows
         - [ ] Merge HW & SW architectures
     - [ ] Create package and module structure
