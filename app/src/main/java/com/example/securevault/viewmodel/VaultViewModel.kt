@@ -84,6 +84,20 @@ open class VaultViewModel(
     private val _noteLoginError = MutableStateFlow<String?>(null)
     val noteLoginError: StateFlow<String?> = _noteLoginError.asStateFlow()
 
+    // Note Creation draft state (preserves inputs when navigating between NoteCreationScreen and NotePrivacyScreen)
+    private val _creationDraftTitle = MutableStateFlow("")
+    val creationDraftTitle: StateFlow<String> = _creationDraftTitle.asStateFlow()
+
+    private val _creationDraftContent = MutableStateFlow("")
+    val creationDraftContent: StateFlow<String> = _creationDraftContent.asStateFlow()
+
+    private val _creationDraftPassword = MutableStateFlow("")
+    val creationDraftPassword: StateFlow<String> = _creationDraftPassword.asStateFlow()
+
+    // Tracks navigation source for NotePrivacyScreen (either NOTE_MAIN or NOTE_CREATION)
+    private var privacySourceScreen: AppScreen = AppScreen.NOTE_MAIN
+    val privacyReturnScreen: AppScreen get() = privacySourceScreen
+
     fun navigateTo(screen: AppScreen) {
         // Clear screen-specific errors on navigation
         when (screen) {
@@ -159,6 +173,11 @@ open class VaultViewModel(
 
     fun unlockNote(passwordCandidate: String, onSuccess: () -> Unit = {}) {
         val current = _activeNote.value
+        if (current == null) {
+            _noteLoginError.value = "No active note selected."
+            return
+        }
+
         if (current is PrivateNote) {
             if (current.verifyPassword(passwordCandidate)) {
                 _noteLoginError.value = null
@@ -168,11 +187,56 @@ open class VaultViewModel(
                 _noteLoginError.value = "Incorrect note password."
             }
         } else {
+            _noteLoginError.value = null
             _currentScreen.value = AppScreen.NOTE_MAIN
+            onSuccess()
         }
     }
 
     // --- Note CRUD Actions (Screen 7, 8, 9, 10) ---
+
+    fun openNoteCreation() {
+        _creationDraftTitle.value = ""
+        _creationDraftContent.value = ""
+        _creationDraftPassword.value = ""
+        _currentScreen.value = AppScreen.NOTE_CREATION
+    }
+
+    fun updateCreationDraft(title: String, content: String) {
+        _creationDraftTitle.value = title
+        _creationDraftContent.value = content
+    }
+
+    fun openPrivacyFromMain(note: Note) {
+        _activeNote.value = note
+        privacySourceScreen = AppScreen.NOTE_MAIN
+        _currentScreen.value = AppScreen.NOTE_PRIVACY
+    }
+
+    fun openPrivacyFromCreation(title: String, content: String) {
+        _creationDraftTitle.value = title
+        _creationDraftContent.value = content
+        privacySourceScreen = AppScreen.NOTE_CREATION
+        _currentScreen.value = AppScreen.NOTE_PRIVACY
+    }
+
+    fun cancelPrivacy() {
+        _currentScreen.value = privacySourceScreen
+    }
+
+    fun savePrivacy(passwordInput: String) {
+        if (privacySourceScreen == AppScreen.NOTE_CREATION) {
+            _creationDraftPassword.value = passwordInput.trim()
+            _currentScreen.value = AppScreen.NOTE_CREATION
+        } else {
+            val note = _activeNote.value
+            if (note != null) {
+                saveNotePrivacy(note, passwordInput)
+            } else {
+                _currentScreen.value = AppScreen.MAIN
+            }
+        }
+    }
 
     fun createNote(title: String, content: String, isPrivate: Boolean, password: String = "") {
         viewModelScope.launch {
@@ -194,15 +258,18 @@ open class VaultViewModel(
             val generatedId = repository.insertNote(newNote)
             newNote.id = generatedId
             _activeNote.value = newNote
+            _creationDraftTitle.value = ""
+            _creationDraftContent.value = ""
+            _creationDraftPassword.value = ""
             _currentScreen.value = AppScreen.MAIN
         }
     }
 
     fun updateNoteContent(note: Note, newTitle: String, newContent: String) {
         viewModelScope.launch {
-            note.update(newTitle, newContent)
-            repository.updateNote(note)
-            _activeNote.value = note
+            val updated = note.copyWith(newTitle, newContent)
+            repository.updateNote(updated)
+            _activeNote.value = updated
             _currentScreen.value = AppScreen.NOTE_MAIN
         }
     }

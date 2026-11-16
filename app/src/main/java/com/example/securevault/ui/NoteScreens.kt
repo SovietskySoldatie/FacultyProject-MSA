@@ -31,7 +31,7 @@ fun NoteLoginScreen(
     onUnlock: (password: String) -> Unit,
     onBack: () -> Unit
 ) {
-    var password by remember { mutableStateOf("") }
+    var password by remember(noteTitle) { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -225,8 +225,8 @@ fun NoteEditScreen(
     onSave: (newTitle: String, newContent: String) -> Unit,
     onBack: () -> Unit
 ) {
-    var title by remember { mutableStateOf(initialNote.title) }
-    var content by remember { mutableStateOf(initialNote.content) }
+    var title by remember(initialNote.id) { mutableStateOf(initialNote.title) }
+    var content by remember(initialNote.id) { mutableStateOf(initialNote.content) }
 
     Scaffold(
         topBar = {
@@ -300,13 +300,13 @@ fun NoteEditScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotePrivacyScreen(
-    note: Note,
+    noteTitle: String,
+    initialPassword: String,
+    isCurrentlyPrivate: Boolean,
     onSavePrivacy: (passwordInput: String) -> Unit,
     onBack: () -> Unit
 ) {
-    // Current password is shown if note is currently PrivateNote; empty if PublicNote
-    val currentPassword = (note as? PrivateNote)?.password ?: ""
-    var passwordInput by remember { mutableStateOf(currentPassword) }
+    var passwordInput by remember(initialPassword) { mutableStateOf(initialPassword) }
 
     Scaffold(
         topBar = {
@@ -324,7 +324,7 @@ fun NotePrivacyScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Privacy for: \"${note.title}\"",
+                text = "Privacy for: \"$noteTitle\"",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -332,13 +332,13 @@ fun NotePrivacyScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = if (note.isPrivate()) {
+                text = if (isCurrentlyPrivate) {
                     "Currently: Private Note (Password Protected)"
                 } else {
                     "Currently: Public Note (Unprotected)"
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (note.isPrivate()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                color = if (isCurrentlyPrivate) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -361,7 +361,7 @@ fun NotePrivacyScreen(
                     .fillMaxWidth()
                     .height(48.dp)
             ) {
-                Text("Save Privacy Settings")
+                Text("Save")
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -379,6 +379,25 @@ fun NotePrivacyScreen(
 }
 
 /**
+ * Convenience overload for NotePrivacyScreen taking a domain Note object.
+ */
+@Composable
+fun NotePrivacyScreen(
+    note: Note,
+    onSavePrivacy: (passwordInput: String) -> Unit,
+    onBack: () -> Unit
+) {
+    val currentPassword = (note as? PrivateNote)?.password ?: ""
+    NotePrivacyScreen(
+        noteTitle = note.title,
+        initialPassword = currentPassword,
+        isCurrentlyPrivate = note.isPrivate(),
+        onSavePrivacy = onSavePrivacy,
+        onBack = onBack
+    )
+}
+
+/**
  * Screen 10: NoteCreationScreen
  *
  * Requirements:
@@ -388,26 +407,27 @@ fun NotePrivacyScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteCreationScreen(
+    draftTitle: String,
+    draftContent: String,
+    privacyPassword: String,
+    onDraftChange: (title: String, content: String) -> Unit,
+    onOpenPrivacyScreen: (title: String, content: String) -> Unit,
     onCreateNote: (title: String, content: String, isPrivate: Boolean, password: String) -> Unit,
     onBack: () -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var content by remember { mutableStateOf("") }
-    var showPrivacyDialog by remember { mutableStateOf(false) }
-    var password by remember { mutableStateOf("") }
+    var title by remember(draftTitle) { mutableStateOf(draftTitle) }
+    var content by remember(draftContent) { mutableStateOf(draftContent) }
 
-    val isPrivate = password.isNotBlank()
+    LaunchedEffect(title, content) {
+        onDraftChange(title, content)
+    }
+
+    val isPrivate = privacyPassword.isNotBlank()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("New Note") },
-                actions = {
-                    // Link to privacy options
-                    TextButton(onClick = { showPrivacyDialog = true }) {
-                        Text(if (isPrivate) "Privacy: Private" else "Privacy: Public")
-                    }
-                }
+                title = { Text("New Note") }
             )
         }
     ) { innerPadding ->
@@ -424,19 +444,23 @@ fun NoteCreationScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Privacy configuration link bar
+            // Link to NotePrivacyScreen (Screen 9)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (isPrivate) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer
+                    containerColor = if (isPrivate) {
+                        MaterialTheme.colorScheme.errorContainer
+                    } else {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    }
                 )
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -444,13 +468,13 @@ fun NoteCreationScreen(
                         text = if (isPrivate) "Privacy: Private (Password set)" else "Privacy: Public (No password)",
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    TextButton(onClick = { showPrivacyDialog = true }) {
-                        Text("Configure Privacy")
+                    TextButton(onClick = { onOpenPrivacyScreen(title, content) }) {
+                        Text("Privacy Settings")
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             OutlinedTextField(
                 value = content,
@@ -479,7 +503,7 @@ fun NoteCreationScreen(
                 Button(
                     onClick = {
                         if (title.isNotBlank()) {
-                            onCreateNote(title, content, isPrivate, password)
+                            onCreateNote(title, content, isPrivate, privacyPassword)
                         }
                     },
                     enabled = title.isNotBlank(),
@@ -491,42 +515,5 @@ fun NoteCreationScreen(
                 }
             }
         }
-    }
-
-    // Modal Privacy configuration matching NotePrivacyScreen requirements
-    if (showPrivacyDialog) {
-        var tempPassword by remember { mutableStateOf(password) }
-        AlertDialog(
-            onDismissRequest = { showPrivacyDialog = false },
-            title = { Text("Note Privacy Options") },
-            text = {
-                Column {
-                    Text(
-                        text = "Set a password to create a PrivateNote. Leave empty for PublicNote.",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value = tempPassword,
-                        onValueChange = { tempPassword = it },
-                        label = { Text("Password") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    password = tempPassword
-                    showPrivacyDialog = false
-                }) {
-                    Text("Save")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { showPrivacyDialog = false }) {
-                    Text("Back")
-                }
-            }
-        )
     }
 }

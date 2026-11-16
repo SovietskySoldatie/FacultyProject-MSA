@@ -2,12 +2,14 @@ package com.example.securevault
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.example.securevault.model.PrivateNote
 import com.example.securevault.ui.*
 import com.example.securevault.ui.theme.SecureVaultTheme
 import com.example.securevault.viewmodel.AppScreen
@@ -53,6 +55,7 @@ fun VaultApp(viewModel: VaultViewModel) {
 
         // Screen 2: LoginScreen
         AppScreen.LOGIN -> {
+            BackHandler { viewModel.navigateTo(AppScreen.APP_INTRODUCTION) }
             LoginScreen(
                 errorMessage = loginError,
                 onLogin = { pass -> viewModel.login(pass) },
@@ -62,6 +65,7 @@ fun VaultApp(viewModel: VaultViewModel) {
 
         // Screen 3: ResetPasswordScreen
         AppScreen.RESET_PASSWORD -> {
+            BackHandler { viewModel.navigateTo(AppScreen.APP_INTRODUCTION) }
             ResetPasswordScreen(
                 errorMessage = resetPasswordError,
                 onVerifyOldPassword = { oldPass -> viewModel.verifyOldPassword(oldPass) },
@@ -71,6 +75,7 @@ fun VaultApp(viewModel: VaultViewModel) {
 
         // Screen 4: SetPasswordScreen
         AppScreen.SET_PASSWORD -> {
+            BackHandler { viewModel.navigateTo(AppScreen.APP_INTRODUCTION) }
             SetPasswordScreen(
                 errorMessage = setPasswordError,
                 onSavePassword = { newPass, confirmPass ->
@@ -82,16 +87,18 @@ fun VaultApp(viewModel: VaultViewModel) {
 
         // Screen 5: MainScreen
         AppScreen.MAIN -> {
+            BackHandler { viewModel.navigateTo(AppScreen.APP_INTRODUCTION) }
             MainScreen(
                 notes = notes,
                 onAccessNote = { note -> viewModel.accessNote(note) },
-                onCreateNote = { viewModel.navigateTo(AppScreen.NOTE_CREATION) },
+                onCreateNote = { viewModel.openNoteCreation() },
                 onExit = { viewModel.navigateTo(AppScreen.APP_INTRODUCTION) }
             )
         }
 
         // Screen 6: NoteLoginScreen
         AppScreen.NOTE_LOGIN -> {
+            BackHandler { viewModel.navigateTo(AppScreen.MAIN) }
             val note = activeNote
             NoteLoginScreen(
                 noteTitle = note?.title ?: "Note",
@@ -105,13 +112,14 @@ fun VaultApp(viewModel: VaultViewModel) {
 
         // Screen 7: NoteMainScreen
         AppScreen.NOTE_MAIN -> {
+            BackHandler { viewModel.navigateTo(AppScreen.MAIN) }
             val note = activeNote
             if (note != null) {
                 NoteMainScreen(
                     note = note,
                     onBack = { viewModel.navigateTo(AppScreen.MAIN) },
                     onEdit = { viewModel.navigateTo(AppScreen.NOTE_EDIT) },
-                    onPrivacy = { viewModel.navigateTo(AppScreen.NOTE_PRIVACY) },
+                    onPrivacy = { viewModel.openPrivacyFromMain(note) },
                     onDelete = { viewModel.deleteNote(note) }
                 )
             } else {
@@ -121,6 +129,7 @@ fun VaultApp(viewModel: VaultViewModel) {
 
         // Screen 8: NoteEditScreen
         AppScreen.NOTE_EDIT -> {
+            BackHandler { viewModel.navigateTo(AppScreen.NOTE_MAIN) }
             val note = activeNote
             if (note != null) {
                 NoteEditScreen(
@@ -137,23 +146,43 @@ fun VaultApp(viewModel: VaultViewModel) {
 
         // Screen 9: NotePrivacyScreen
         AppScreen.NOTE_PRIVACY -> {
-            val note = activeNote
-            if (note != null) {
-                NotePrivacyScreen(
-                    note = note,
-                    onSavePrivacy = { passwordInput ->
-                        viewModel.saveNotePrivacy(note, passwordInput)
-                    },
-                    onBack = { viewModel.navigateTo(AppScreen.NOTE_MAIN) }
-                )
-            } else {
-                viewModel.navigateTo(AppScreen.MAIN)
-            }
+            BackHandler { viewModel.cancelPrivacy() }
+            val isFromCreation = viewModel.privacyReturnScreen == AppScreen.NOTE_CREATION
+            val draftTitle by viewModel.creationDraftTitle.collectAsState()
+            val draftPassword by viewModel.creationDraftPassword.collectAsState()
+
+            val title = if (isFromCreation) draftTitle.ifBlank { "New Note" } else (activeNote?.title ?: "Note")
+            val currentPassword = if (isFromCreation) draftPassword else ((activeNote as? PrivateNote)?.password ?: "")
+            val isPrivate = if (isFromCreation) currentPassword.isNotBlank() else (activeNote?.isPrivate() ?: false)
+
+            NotePrivacyScreen(
+                noteTitle = title,
+                initialPassword = currentPassword,
+                isCurrentlyPrivate = isPrivate,
+                onSavePrivacy = { passwordInput ->
+                    viewModel.savePrivacy(passwordInput)
+                },
+                onBack = { viewModel.cancelPrivacy() }
+            )
         }
 
         // Screen 10: NoteCreationScreen
         AppScreen.NOTE_CREATION -> {
+            BackHandler { viewModel.navigateTo(AppScreen.MAIN) }
+            val draftTitle by viewModel.creationDraftTitle.collectAsState()
+            val draftContent by viewModel.creationDraftContent.collectAsState()
+            val draftPassword by viewModel.creationDraftPassword.collectAsState()
+
             NoteCreationScreen(
+                draftTitle = draftTitle,
+                draftContent = draftContent,
+                privacyPassword = draftPassword,
+                onDraftChange = { title, content ->
+                    viewModel.updateCreationDraft(title, content)
+                },
+                onOpenPrivacyScreen = { title, content ->
+                    viewModel.openPrivacyFromCreation(title, content)
+                },
                 onCreateNote = { title, content, isPrivate, password ->
                     viewModel.createNote(title, content, isPrivate, password)
                 },
