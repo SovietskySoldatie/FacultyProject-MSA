@@ -1,7 +1,7 @@
 ## TO-DOs:
 - [ ] Add specs & reqs & docs
-    - [ ] Add original specifications (`specs/original specs.txt`)
-    - [ ] Decompose specifications into formal specs (`specs/formal specs.md`)
+    - [x] Add original specifications (`specs/original specs.txt`)
+    - [x] Decompose specifications into formal specs (`specs/formal specs.md`)
     - [ ] Add and decompose project requirements (`reqs/reqs.md`)
     - [ ] Add documentation
 - [ ] Define project architecture
