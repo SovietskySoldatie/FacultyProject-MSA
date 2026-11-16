@@ -3,7 +3,7 @@
     - [x] Add original specifications (`specs/original specs.txt`)
     - [x] Decompose specifications into formal specs (`specs/formal specs.md`)
     - [ ] Add and decompose project requirements (`reqs/reqs.md`)
-    - [ ] Add documentation
+    - [ ] Add documentations (`docs`)
 - [ ] Define project architecture
     - [ ] Hardware-Software codesign partitioning
         - [ ] Identify hardware architecture and platform constraints (sensors, biometrics, hardware Keystore/TEE, power/lifecycle)
