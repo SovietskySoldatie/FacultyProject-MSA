@@ -58,16 +58,18 @@ Common fields and behavior are factored into the abstract base class `Note`:
 ### Note Privacy Mutation Strategy
 When modifying a note's privacy settings in `NotePrivacyScreen`:
 - If converting between `PublicNote` and `PrivateNote`:
-  1. A **new Note** of the target type is created.
+  1. A **new Note** of the target type is created (using `oldNote.toPrivate()` or `oldNote.toPublic()`).
   2. The new Note is inserted into the SQLite database, where a **new ID** is assigned by the DB engine.
   3. The **old Note** is subsequently deleted from the database.
-- If a `PrivateNote` maintains private status but modifies its password, the password is updated in the model and database directly.
+  4. Both operations are executed atomically in a single database transaction via `@Transaction NoteDao.replaceNoteWithNewPrivacy(...)` to guarantee consistency and prevent orphaned or duplicate records.
+- If a `PrivateNote` maintains private status but modifies its password, the password is updated in the model and database directly using immutable `copyWith(newPassword = ...)` ensuring proper reactive `StateFlow` emissions.
+- Symmetrical `equals` and `hashCode` contracts are strictly enforced across `Note`, `PublicNote`, and `PrivateNote`.
 
 ---
 
 ## 4. UI Navigation & Screen Categories (10 Categories)
 
-The presentation layer is built with Jetpack Compose and Material 3, coordinated by `VaultViewModel`:
+The presentation layer is built with Jetpack Compose and Material 3, coordinated by `VaultViewModel`. All screens include `BackHandler` integrations so physical or gesture navigation on Android operates consistently with on-screen back buttons:
 
 1. **`AppIntroductionScreen` (Category 1)**
    - Dynamic button rendering based on credential presence:
@@ -78,19 +80,19 @@ The presentation layer is built with Jetpack Compose and Material 3, coordinated
    - Master password text field.
    - On correct password: navigates to `MainScreen`.
    - On incorrect password: renders an error message.
-   - Back button: returns to `AppIntroductionScreen`.
+   - Back button & system gesture: returns to `AppIntroductionScreen`.
 
 3. **`ResetPasswordScreen` (Category 3)**
    - Old password verification field.
    - On correct old password: navigates to `SetPasswordScreen`.
    - On incorrect old password: displays an error message.
-   - Back button: returns to `AppIntroductionScreen`.
+   - Back button & system gesture: returns to `AppIntroductionScreen`.
 
 4. **`SetPasswordScreen` (Category 4)**
    - Dual text fields: "New Password" and "Confirm New Password".
    - On match: saves password in DB Schema 1 and redirects to `AppIntroductionScreen`.
    - On mismatch: displays mismatch error without clearing the entered text fields (preserves user input).
-   - Back button: returns to `AppIntroductionScreen`.
+   - Back button & system gesture: returns to `AppIntroductionScreen`.
 
 5. **`MainScreen` (Category 5)**
    - Lists all persisted notes via `LazyColumn`.
@@ -103,7 +105,7 @@ The presentation layer is built with Jetpack Compose and Material 3, coordinated
    - Password text field for accessing a specific `PrivateNote`.
    - On match: redirects to that note's `NoteMainScreen`.
    - On failure: displays error message.
-   - Back button: returns to `MainScreen`.
+   - Back button & system gesture: returns to `MainScreen`.
 
 7. **`NoteMainScreen` (Category 7)**
    - Displays Note title at the top and full body text below.
@@ -115,28 +117,28 @@ The presentation layer is built with Jetpack Compose and Material 3, coordinated
 
 8. **`NoteEditScreen` (Category 8)**
    - Outlined text fields for editing title and content.
-   - Save button persists edits to DB and returns to `NoteMainScreen`.
-   - Back button returns to `NoteMainScreen` without applying changes.
+   - Save button persists edits to DB, updates domain model with new instance for StateFlow reactivity, and returns to `NoteMainScreen`.
+   - Back button & system gesture return to `NoteMainScreen` without applying changes.
 
 9. **`NotePrivacyScreen` (Category 9)**
    - Displays current note privacy state and password textbox (pre-populated with existing password if note is private).
    - If textbox is cleared and saved, note privacy status transitions to public.
    - If a password is entered and saved, note transitions to or updates private status.
    - Changes take effect strictly when clicking the Save button.
-   - Back button returns to `NoteMainScreen` without saving.
+   - Back button & system gesture return to the originating screen (`NoteMainScreen` or `NoteCreationScreen`) without saving.
 
 10. **`NoteCreationScreen` (Category 10)**
     - Form matching `NoteEditScreen` with fields for title and content.
-    - Includes integrated privacy configuration allowing creation of either a `PublicNote` or a password-secured `PrivateNote`.
+    - Includes a direct link to `NotePrivacyScreen` (Category 9) allowing pre-configuration of password protection while preserving user draft title and content.
     - Creates the Note domain object and saves it to SQLite with DB engine ID generation.
-    - Back button returns to `MainScreen`.
+    - Back button & system gesture return to `MainScreen`.
 
 ---
 
 ## 5. Verification & Test Suite
 
 Automated unit tests covering:
-- **`NoteModelTest`**: Abstract inheritance, preview formatting, truncation boundary conditions, password verification logic, and conversion methods.
-- **`VaultRepositoryTest`**: CRUD operations, Schema 1 & Schema 2 persistence, DB engine ID generation, and the create-new-then-delete-old privacy transition mechanism.
-- **`VaultViewModelTest`**: End-to-end screen transitions across all 10 screen categories, auth validation, error states, and note operations.
-- **`VaultEdgeCasesTest`**: Boundary lengths (0 chars, whitespace, 60 chars, 61 chars), DB Entity serialization roundtrips, cascading privacy mutations, and non-target note deletion isolation.
+- **`NoteModelTest`**: Abstract inheritance, preview formatting, truncation boundary conditions, password verification logic, conversion methods, `copyWith` immutability, and `equals`/`hashCode` symmetry between PublicNote and PrivateNote.
+- **`VaultRepositoryTest`**: CRUD operations, Schema 1 & Schema 2 persistence, DB engine ID generation, atomic `@Transaction` privacy transition replacing old note with engine-generated new note.
+- **`VaultViewModelTest`**: End-to-end screen transitions across all 10 screen categories, auth validation, draft retention when navigating between NoteCreationScreen and NotePrivacyScreen, safe unlock authentication checks, and reactive note operations.
+- **`VaultEdgeCasesTest`**: Boundary lengths (0 chars, whitespace, 60 chars, 61 chars), DB Entity serialization roundtrips, cascading privacy mutations, non-target note deletion isolation, and bidirectional back-routing for privacy settings.

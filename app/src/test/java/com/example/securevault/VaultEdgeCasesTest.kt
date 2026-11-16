@@ -203,5 +203,32 @@ class VaultEdgeCasesTest {
         viewModel.navigateTo(AppScreen.NOTE_CREATION)
         viewModel.navigateTo(AppScreen.MAIN)
         assertEquals(AppScreen.MAIN, viewModel.currentScreen.value)
+
+        // Privacy cancel back to NoteMain
+        val note = PublicNote(id = 1L, title = "Title", content = "Content")
+        viewModel.openPrivacyFromMain(note)
+        assertEquals(AppScreen.NOTE_PRIVACY, viewModel.currentScreen.value)
+        viewModel.cancelPrivacy()
+        assertEquals(AppScreen.NOTE_MAIN, viewModel.currentScreen.value)
+
+        // Privacy cancel back to NoteCreation
+        viewModel.openPrivacyFromCreation("Draft", "Text")
+        assertEquals(AppScreen.NOTE_PRIVACY, viewModel.currentScreen.value)
+        viewModel.cancelPrivacy()
+        assertEquals(AppScreen.NOTE_CREATION, viewModel.currentScreen.value)
+    }
+
+    @Test
+    fun testReplaceNoteWithNewPrivacyDefaultDaoImplementation() = runBlocking {
+        val originalEntity = NoteEntity(id = 0, title = "Doc", content = "Text", isPrivate = false)
+        val originalId = fakeNoteDao.insertNote(originalEntity)
+        assertEquals(1L, originalId)
+
+        val newEntity = NoteEntity(id = 0, title = "Doc", content = "Text", isPrivate = true, password = "secret")
+        val newId = fakeNoteDao.replaceNoteWithNewPrivacy(newEntity, originalId)
+
+        assertEquals("New ID generated", 2L, newId)
+        assertNull("Original ID deleted", fakeNoteDao.getNoteById(originalId))
+        assertNotNull("New entity exists", fakeNoteDao.getNoteById(newId))
     }
 }

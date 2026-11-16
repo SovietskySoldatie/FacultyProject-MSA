@@ -96,4 +96,50 @@ class NoteModelTest {
         assertEquals("Content 1", publicConverted.content)
         assertEquals(0L, publicConverted.id)
     }
+
+    @Test
+    fun testEqualsAndHashCodeSymmetryBetweenPublicAndPrivateNotes() {
+        val pub = PublicNote(id = 10L, title = "Same Title", content = "Same Content")
+        val priv = PrivateNote(id = 10L, title = "Same Title", content = "Same Content", password = "secret")
+        val pubClone = PublicNote(id = 10L, title = "Same Title", content = "Same Content")
+        val privClone = PrivateNote(id = 10L, title = "Same Title", content = "Same Content", password = "secret")
+        val privDifferentPass = PrivateNote(id = 10L, title = "Same Title", content = "Same Content", password = "other")
+
+        // Symmetry contract: pub == priv MUST equal priv == pub (both false)
+        assertFalse("PublicNote and PrivateNote must not be equal", pub == priv)
+        assertFalse("PrivateNote and PublicNote must not be equal", priv == pub)
+        assertEquals(pub == priv, priv == pub)
+
+        // Clones of same type must be equal
+        assertTrue("Matching PublicNotes must be equal", pub == pubClone)
+        assertEquals(pub.hashCode(), pubClone.hashCode())
+
+        assertTrue("Matching PrivateNotes must be equal", priv == privClone)
+        assertEquals(priv.hashCode(), privClone.hashCode())
+
+        // Different passwords must not be equal
+        assertFalse("PrivateNotes with different passwords must not be equal", priv == privDifferentPass)
+    }
+
+    @Test
+    fun testCopyWithMethod() {
+        val pub = PublicNote(id = 5L, title = "Original Title", content = "Original Content")
+        val pubCopy = pub.copyWith(newTitle = "Updated Title")
+
+        assertEquals(5L, pubCopy.id)
+        assertEquals("Updated Title", pubCopy.title)
+        assertEquals("Original Content", pubCopy.content)
+        assertFalse(pubCopy.isPrivate())
+        assertNotSame(pub, pubCopy)
+
+        val priv = PrivateNote(id = 7L, title = "Priv Title", content = "Priv Content", password = "p1")
+        val privCopy = priv.copyWith(newContent = "New Body", newPassword = "p2")
+
+        assertEquals(7L, privCopy.id)
+        assertEquals("Priv Title", privCopy.title)
+        assertEquals("New Body", privCopy.content)
+        assertEquals("p2", privCopy.password)
+        assertTrue(privCopy.isPrivate())
+        assertNotSame(priv, privCopy)
+    }
 }

@@ -262,4 +262,89 @@ class VaultViewModelTest {
         assertNull(viewModel.activeNote.value)
         assertTrue(viewModel.notes.value.isEmpty())
     }
+
+    @Test
+    fun testNoteCreationToPrivacyScreenLinkPreservesDraftAndCreatesPrivateNote() = runTest(testDispatcher) {
+        viewModel.openNoteCreation()
+        assertEquals(AppScreen.NOTE_CREATION, viewModel.currentScreen.value)
+
+        // User fills in title and content
+        viewModel.updateCreationDraft("Classified Plan", "Project alpha details")
+        assertEquals("Classified Plan", viewModel.creationDraftTitle.value)
+        assertEquals("Project alpha details", viewModel.creationDraftContent.value)
+
+        // User taps NotePrivacyScreen link
+        viewModel.openPrivacyFromCreation("Classified Plan", "Project alpha details")
+        assertEquals(AppScreen.NOTE_PRIVACY, viewModel.currentScreen.value)
+        assertEquals(AppScreen.NOTE_CREATION, viewModel.privacyReturnScreen)
+
+        // User configures privacy password and saves
+        viewModel.savePrivacy("planPassword123")
+        assertEquals(AppScreen.NOTE_CREATION, viewModel.currentScreen.value)
+        assertEquals("planPassword123", viewModel.creationDraftPassword.value)
+        assertEquals("Classified Plan", viewModel.creationDraftTitle.value)
+        assertEquals("Project alpha details", viewModel.creationDraftContent.value)
+
+        // User finishes creation
+        viewModel.createNote(
+            title = viewModel.creationDraftTitle.value,
+            content = viewModel.creationDraftContent.value,
+            isPrivate = viewModel.creationDraftPassword.value.isNotEmpty(),
+            password = viewModel.creationDraftPassword.value
+        )
+        advanceUntilIdle()
+
+        assertEquals(AppScreen.MAIN, viewModel.currentScreen.value)
+        val created = viewModel.notes.value.find { it.title == "Classified Plan" }
+        assertNotNull(created)
+        assertTrue("Created note must be PrivateNote", created!!.isPrivate())
+        assertEquals("planPassword123", (created as PrivateNote).password)
+    }
+
+    @Test
+    fun testNoteCreationCancelPrivacyPreservesDraft() = runTest(testDispatcher) {
+        viewModel.openNoteCreation()
+        viewModel.updateCreationDraft("Draft Title", "Draft Content")
+
+        // Go to Privacy
+        viewModel.openPrivacyFromCreation("Draft Title", "Draft Content")
+        assertEquals(AppScreen.NOTE_PRIVACY, viewModel.currentScreen.value)
+
+        // Click Back / Cancel
+        viewModel.cancelPrivacy()
+        assertEquals(AppScreen.NOTE_CREATION, viewModel.currentScreen.value)
+        assertEquals("Draft Title", viewModel.creationDraftTitle.value)
+        assertEquals("Draft Content", viewModel.creationDraftContent.value)
+        assertEquals("", viewModel.creationDraftPassword.value)
+    }
+
+    @Test
+    fun testUnlockNoteWithNullActiveNoteDoesNotUnlock() = runTest(testDispatcher) {
+        // No note selected
+        viewModel.unlockNote("anyPassword")
+        advanceUntilIdle()
+
+        assertEquals("No active note selected.", viewModel.noteLoginError.value)
+        assertNotEquals(AppScreen.NOTE_MAIN, viewModel.currentScreen.value)
+    }
+
+    @Test
+    fun testUpdateNoteContentProducesDistinctInstanceForStateFlow() = runTest(testDispatcher) {
+        val original = PublicNote(id = 100L, title = "Original Title", content = "Original Content")
+        repository.insertNote(original)
+        advanceUntilIdle()
+
+        viewModel.accessNote(original)
+        val beforeUpdate = viewModel.activeNote.value
+        assertSame(original, beforeUpdate)
+
+        viewModel.updateNoteContent(original, "New Title", "New Content")
+        advanceUntilIdle()
+
+        val afterUpdate = viewModel.activeNote.value
+        assertNotNull(afterUpdate)
+        assertEquals("New Title", afterUpdate!!.title)
+        assertEquals("New Content", afterUpdate.content)
+        assertNotSame("Must produce a new instance for StateFlow emission", beforeUpdate, afterUpdate)
+    }
 }
