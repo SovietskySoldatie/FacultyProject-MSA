@@ -1,0 +1,6 @@
+The app aims to create SecureNotes Vault, a secure mobile application for managing personal notes and confidential information.
+The user will create and manage standard notes alongside an encrypted Vault for sensitive notes requiring per-access biometric (Fingerprint / Face ID) or PIN verification.
+The app integrates a hardware-assisted Panic Lock using device sensors (proximity screen-cover, accelerometer shake / flip face-down) and haptic feedback to instantly protect on-screen content.
+Data persistence is handled locally with an encrypted database, with optional location-based access fencing.
+The system supports single-owner device authentication or multi-user account isolation with biometric delegation.
+The project aims for cross-platform smartphone compatibility (Android & iOS).

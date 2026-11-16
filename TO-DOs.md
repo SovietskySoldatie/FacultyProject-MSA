@@ -1,0 +1,35 @@
+## TO-DOs:
+- [ ] Add specs & reqs & docs
+    - [x] Add original specifications (`specs/original specs.txt`)
+    - [x] Decompose specifications into formal specs (`specs/formal specs.md`)
+    - [x] Add and decompose project requirements (`reqs/reqs.md`)
+    - [ ] Add documentations (`docs`)
+- [ ] Define project architecture
+    - [ ] Hardware-Software codesign partitioning
+        - [ ] Identify hardware architecture and platform constraints (sensors, biometrics, hardware Keystore/TEE, power/lifecycle)
+        - [ ] Define software architecture (presentation layer, crypto vault service, sensor panic manager, encrypted local repository)
+            - [ ] Add UML diagrams for:
+                - [x] Use cases (`reqs/reqs.md`)
+                - [x] Components (`reqs/reqs.md`)
+                - [x] Main states (`reqs/reqs.md`)
+                - [ ] Sequence flows
+        - [ ] Merge HW & SW architectures
+    - [ ] Create package and module structure
+    - [ ] Review package structure
+    - [ ] Improve package structure (if needed)
+    - [ ] Create interfaces & base contracts
+    - [ ] Document architecture
+        - [ ] Add diagrams (Mermaid architecture diagrams, state machines, and sequence flows)
+        - [ ] Keep architecture up-to-date
+- [ ] Define software & hardware design
+    - [ ] Define hardware abstraction layer (Sensors, Biometrics, Haptics)
+    - [ ] Define data models, schemas, and persistence contracts
+- [ ] Implement code
+    - [ ] Initial ramp-up
+        - [ ] Define interfaces and contracts
+        - [ ] Implement base app logic and lifecycle services
+    - [ ] Prepare demo
+        - [ ] Implement working prototype (note CRUD, vault biometrics, and sensor panic lock)
+    - TBA
+- [ ] Implement tests
+    - TBA
