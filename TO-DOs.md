@@ -1,9 +1,9 @@
 ## TO-DOs:
-- [ ] Add specs & reqs & docs
+- [x] Add specs & reqs & docs
     - [x] Add original specifications (`specs/original specs.txt`)
     - [x] Decompose specifications into formal specs (`specs/formal specs.md`)
     - [x] Add and decompose project requirements (`reqs/reqs.md`)
-    - [ ] Add documentations (`docs`)
+    - [x] Add documentations (`docs/crud_and_db_architecture.md`)
 - [ ] Define project architecture
     - [ ] Hardware-Software codesign partitioning
         - [ ] Identify hardware architecture and platform constraints (sensors, biometrics, hardware Keystore/TEE, power/lifecycle)
@@ -14,22 +14,26 @@
                 - [x] Main states (`reqs/reqs.md`)
                 - [ ] Sequence flows
         - [ ] Merge HW & SW architectures
-    - [ ] Create package and module structure
-    - [ ] Review package structure
-    - [ ] Improve package structure (if needed)
-    - [ ] Create interfaces & base contracts
-    - [ ] Document architecture
+    - [x] Create package and module structure
+    - [x] Review package structure
+    - [x] Improve package structure (if needed)
+    - [x] Create interfaces & base contracts
+    - [x] Document architecture (`docs/crud_and_db_architecture.md`)
         - [ ] Add diagrams (Mermaid architecture diagrams, state machines, and sequence flows)
-        - [ ] Keep architecture up-to-date
+        - [x] Keep architecture up-to-date
 - [ ] Define software & hardware design
     - [ ] Define hardware abstraction layer (Sensors, Biometrics, Haptics)
-    - [ ] Define data models, schemas, and persistence contracts
+    - [x] Define data models, schemas, and persistence contracts
 - [ ] Implement code
-    - [ ] Initial ramp-up
-        - [ ] Define interfaces and contracts
-        - [ ] Implement base app logic and lifecycle services
+    - [x] Initial ramp-up
+        - [x] Define interfaces and contracts
+        - [x] Implement base app logic and lifecycle services
     - [ ] Prepare demo
-        - [ ] Implement working prototype (note CRUD, vault biometrics, and sensor panic lock)
+        - [x] Implement working prototype (note CRUD, local SQLite persistence, 10 screen categories)
+        - [ ] Vault biometrics and sensor panic lock
     - TBA
-- [ ] Implement tests
-    - TBA
+- [x] Implement tests
+    - [x] Unit tests for Note domain models (preview, password, polymorphism)
+    - [x] Unit tests for Repository and SQLite schemas (CRUD, privacy mutation with new note creation & old note deletion, auto ID generation)
+    - [x] Unit tests for ViewModel navigation across all 10 screen categories
+    - [x] Unit tests for boundary conditions and edge cases (35 passed tests)
