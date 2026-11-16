@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.example.securevault.data.entity.NoteEntity
 import kotlinx.coroutines.flow.Flow
@@ -33,4 +34,15 @@ interface NoteDao {
 
     @Query("DELETE FROM notes WHERE id = :id")
     suspend fun deleteNoteById(id: Long)
+
+    /**
+     * Atomically creates a new note in the database first, then deletes the old note.
+     * Enforces the privacy change requirement within a single DB transaction.
+     */
+    @Transaction
+    suspend fun replaceNoteWithNewPrivacy(newNote: NoteEntity, oldNoteId: Long): Long {
+        val newId = insertNote(newNote)
+        deleteNoteById(oldNoteId)
+        return newId
+    }
 }

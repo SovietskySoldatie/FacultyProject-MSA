@@ -23,6 +23,11 @@ abstract class Note(
     abstract fun getPreview(): String?
 
     /**
+     * Creates a copy of this note with updated title and/or content.
+     */
+    abstract fun copyWith(newTitle: String = this.title, newContent: String = this.content): Note
+
+    /**
      * Updates the title and content of this note.
      */
     open fun update(newTitle: String, newContent: String) {
@@ -56,11 +61,12 @@ abstract class Note(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Note) return false
-        return id == other.id && title == other.title && content == other.content
+        return isPrivate() == other.isPrivate() && id == other.id && title == other.title && content == other.content
     }
 
     override fun hashCode(): Int {
-        var result = id.hashCode()
+        var result = isPrivate().hashCode()
+        result = 31 * result + id.hashCode()
         result = 31 * result + title.hashCode()
         result = 31 * result + content.hashCode()
         return result
@@ -91,6 +97,14 @@ class PublicNote(
             trimmed
         }
     }
+
+    override fun copyWith(newTitle: String, newContent: String): PublicNote {
+        return PublicNote(
+            id = this.id,
+            title = newTitle,
+            content = newContent
+        )
+    }
 }
 
 /**
@@ -111,6 +125,19 @@ class PrivateNote(
      * For PrivateNote, content preview is strictly NOT available.
      */
     override fun getPreview(): String? = null
+
+    override fun copyWith(newTitle: String, newContent: String): PrivateNote {
+        return copyWith(newTitle, newContent, this.password)
+    }
+
+    fun copyWith(newTitle: String = this.title, newContent: String = this.content, newPassword: String = this.password): PrivateNote {
+        return PrivateNote(
+            id = this.id,
+            title = newTitle,
+            content = newContent,
+            password = newPassword
+        )
+    }
 
     /**
      * Verifies if the candidate password matches this note's password.
