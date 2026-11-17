@@ -1,0 +1,39 @@
+## TO-DOs:
+- [x] Add specs & reqs & docs
+    - [x] Add original specifications (`specs/original specs.txt`)
+    - [x] Decompose specifications into formal specs (`specs/formal specs.md`)
+    - [x] Add and decompose project requirements (`reqs/reqs.md`)
+    - [x] Add documentations (`docs/crud_and_db_architecture.md`)
+- [ ] Define project architecture
+    - [ ] Hardware-Software codesign partitioning
+        - [ ] Identify hardware architecture and platform constraints (sensors, biometrics, hardware Keystore/TEE, power/lifecycle)
+        - [ ] Define software architecture (presentation layer, crypto vault service, sensor panic manager, encrypted local repository)
+            - [ ] Add UML diagrams for:
+                - [x] Use cases (`reqs/reqs.md`)
+                - [x] Components (`reqs/reqs.md`)
+                - [x] Main states (`reqs/reqs.md`)
+                - [ ] Sequence flows
+        - [ ] Merge HW & SW architectures
+    - [x] Create package and module structure
+    - [x] Review package structure
+    - [x] Improve package structure (if needed)
+    - [x] Create interfaces & base contracts
+    - [x] Document architecture (`docs/crud_and_db_architecture.md`)
+        - [ ] Add diagrams (Mermaid architecture diagrams, state machines, and sequence flows)
+        - [x] Keep architecture up-to-date
+- [ ] Define software & hardware design
+    - [ ] Define hardware abstraction layer (Sensors, Biometrics, Haptics)
+    - [x] Define data models, schemas, and persistence contracts
+- [ ] Implement code
+    - [x] Initial ramp-up
+        - [x] Define interfaces and contracts
+        - [x] Implement base app logic and lifecycle services
+    - [ ] Prepare demo
+        - [x] Implement working prototype (note CRUD, local SQLite persistence, 10 screen categories)
+        - [ ] Vault biometrics and sensor panic lock
+    - TBA
+- [x] Implement tests
+    - [x] Unit tests for Note domain models (preview, password, polymorphism, copyWith, equals symmetry)
+    - [x] Unit tests for Repository and SQLite schemas (CRUD, atomic @Transaction privacy mutation with new note creation & old note deletion, auto ID generation)
+    - [x] Unit tests for ViewModel navigation across all 10 screen categories (including NoteCreation draft retention via NotePrivacyScreen and safe unlock checks)
+    - [x] Unit tests for boundary conditions, empty preview handling across conversions and copies, back routing, and edge cases (44 passed tests)
