@@ -36,4 +36,4 @@
     - [x] Unit tests for Note domain models (preview, password, polymorphism, copyWith, equals symmetry)
     - [x] Unit tests for Repository and SQLite schemas (CRUD, atomic @Transaction privacy mutation with new note creation & old note deletion, auto ID generation)
     - [x] Unit tests for ViewModel navigation across all 10 screen categories (including NoteCreation draft retention via NotePrivacyScreen and safe unlock checks)
-    - [x] Unit tests for boundary conditions, back routing, and edge cases (42 passed tests)
+    - [x] Unit tests for boundary conditions, empty preview handling, back routing, and edge cases (43 passed tests)

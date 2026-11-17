@@ -43,14 +43,6 @@ fun MainScreen(
                     TextButton(onClick = onExit) {
                         Text("Exit", fontWeight = FontWeight.Bold)
                     }
-                },
-                actions = {
-                    Button(
-                        onClick = onCreateNote,
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text("+ New Note")
-                    }
                 }
             )
         },
@@ -150,10 +142,10 @@ fun NoteListItemCard(
 
             when (note) {
                 is PublicNote -> {
-                    // Title AND preview (short, limited) available
-                    val preview = note.getPreview()
+                    // Title AND preview (short, limited) available; left empty if note has no content
+                    val preview = note.getPreview().orEmpty()
                     Text(
-                        text = if (preview.isNullOrBlank()) "(Empty content)" else preview,
+                        text = preview,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

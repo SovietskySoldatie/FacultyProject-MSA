@@ -165,23 +165,24 @@ fun NoteMainScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Action Buttons: Back, Edit, Privacy, Delete
+            // Action Buttons: top-left Edit, top-right Privacy, bottom-left Back, bottom-right Delete
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                OutlinedButton(
-                    onClick = onBack,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Back")
-                }
-
                 Button(
                     onClick = onEdit,
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Edit")
+                }
+
+                Button(
+                    onClick = onPrivacy,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Privacy")
                 }
             }
 
@@ -191,12 +192,11 @@ fun NoteMainScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
-                    onClick = onPrivacy,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                OutlinedButton(
+                    onClick = onBack,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Privacy")
+                    Text("Back")
                 }
 
                 Button(

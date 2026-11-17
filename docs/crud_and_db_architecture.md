@@ -97,9 +97,9 @@ The presentation layer is built with Jetpack Compose and Material 3, coordinated
 5. **`MainScreen` (Category 5)**
    - Lists all persisted notes via `LazyColumn`.
    - "Exit" button in the top navigation bar redirects to `AppIntroductionScreen`.
-   - For `PublicNote`: Displays note title AND a limited preview of the content; action button directly opens `NoteMainScreen`.
+   - For `PublicNote`: Displays note title AND a limited preview of the content (for a note with no content, the preview is left empty); action button directly opens `NoteMainScreen`.
    - For `PrivateNote`: Displays note title AND explicitly conceals preview content (`[Locked - Password Protected]`); action button opens `NoteLoginScreen`.
-   - Includes "+ New Note" create buttons (FAB and top bar action) redirecting to `NoteCreationScreen`.
+   - Includes a floating action button (`+`) redirecting to `NoteCreationScreen` (redundant top-bar "New Note" button removed per specification).
 
 6. **`NoteLoginScreen` (Category 6)**
    - Password text field for accessing a specific `PrivateNote`.
@@ -109,11 +109,11 @@ The presentation layer is built with Jetpack Compose and Material 3, coordinated
 
 7. **`NoteMainScreen` (Category 7)**
    - Displays Note title at the top and full body text below.
-   - Features 4 control buttons:
-     1. Back button (returns to `MainScreen`)
-     2. Edit button (redirects to `NoteEditScreen`)
-     3. Privacy button (redirects to `NotePrivacyScreen`)
-     4. Delete button (deletes note and returns to `MainScreen`)
+   - Features 4 control buttons arranged in a 2x2 layout:
+     - **Top-left**: Edit button (redirects to `NoteEditScreen`)
+     - **Top-right**: Privacy button (redirects to `NotePrivacyScreen`)
+     - **Bottom-left**: Back button (returns to `MainScreen`)
+     - **Bottom-right**: Delete button (deletes note and returns to `MainScreen`)
 
 8. **`NoteEditScreen` (Category 8)**
    - Outlined text fields for editing title and content.
@@ -141,4 +141,4 @@ Automated unit tests covering:
 - **`NoteModelTest`**: Abstract inheritance, preview formatting, truncation boundary conditions, password verification logic, conversion methods, `copyWith` immutability, and `equals`/`hashCode` symmetry between PublicNote and PrivateNote.
 - **`VaultRepositoryTest`**: CRUD operations, Schema 1 & Schema 2 persistence, DB engine ID generation, atomic `@Transaction` privacy transition replacing old note with engine-generated new note.
 - **`VaultViewModelTest`**: End-to-end screen transitions across all 10 screen categories, auth validation, draft retention when navigating between NoteCreationScreen and NotePrivacyScreen, safe unlock authentication checks, and reactive note operations.
-- **`VaultEdgeCasesTest`**: Boundary lengths (0 chars, whitespace, 60 chars, 61 chars), DB Entity serialization roundtrips, cascading privacy mutations, non-target note deletion isolation, and bidirectional back-routing for privacy settings.
+- **`VaultEdgeCasesTest`**: Boundary lengths (0 chars / empty preview, whitespace, 60 chars, 61 chars), preview mutation on content clearing, DB Entity serialization roundtrips, cascading privacy mutations, non-target note deletion isolation, and bidirectional back-routing for privacy settings.

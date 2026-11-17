@@ -46,13 +46,20 @@ class VaultEdgeCasesTest {
 
     @Test
     fun testPreviewBoundaryValues() {
-        // Empty content
+        // Empty content - preview must be left empty
         val emptyNote = PublicNote(title = "Empty", content = "")
         assertEquals("", emptyNote.getPreview())
+        assertTrue("Preview for note with empty content must be empty", emptyNote.getPreview().isNullOrEmpty())
+        assertNotEquals("(Empty content)", emptyNote.getPreview())
 
-        // Whitespace only
+        // Whitespace only - preview must be left empty
         val whitespaceNote = PublicNote(title = "Whitespace", content = "   \n\t  ")
         assertEquals("", whitespaceNote.getPreview())
+        assertTrue("Preview for whitespace-only content must be empty", whitespaceNote.getPreview().isNullOrEmpty())
+
+        // PrivateNote with empty content - preview must remain null
+        val privateEmptyNote = PrivateNote(title = "Private Empty", content = "", password = "pw")
+        assertNull("PrivateNote preview must strictly remain null", privateEmptyNote.getPreview())
 
         // Exactly 60 characters
         val exact60 = "1234567890".repeat(6) // length 60
@@ -67,6 +74,22 @@ class VaultEdgeCasesTest {
         assertNotNull(preview61)
         assertTrue(preview61!!.endsWith("..."))
         assertEquals(63, preview61.length) // 60 chars + "..."
+    }
+
+    @Test
+    fun testPreviewTransitionsWhenContentBecomesEmpty() {
+        val note = PublicNote(title = "Draft", content = "Initial content")
+        assertEquals("Initial content", note.getPreview())
+
+        // Clearing content
+        note.update(newTitle = "Draft", newContent = "")
+        assertEquals("", note.getPreview())
+        assertTrue("Cleared note preview must be empty", note.getPreview()!!.isEmpty())
+
+        // Changing to whitespace
+        note.update(newTitle = "Draft", newContent = "   \t ")
+        assertEquals("", note.getPreview())
+        assertTrue("Whitespace note preview must be empty", note.getPreview()!!.isEmpty())
     }
 
     @Test
