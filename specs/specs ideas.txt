@@ -1,0 +1,2 @@
+encrypt based on some MAC of device
+supplementary encrypt based on password
