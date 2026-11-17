@@ -93,6 +93,28 @@ class VaultEdgeCasesTest {
     }
 
     @Test
+    fun testEmptyContentPreviewAcrossConversionsAndCopies() {
+        // Converting empty PrivateNote to PublicNote leaves preview empty
+        val privateEmpty = PrivateNote(title = "Empty Priv", content = "", password = "pass")
+        assertNull("PrivateNote preview must strictly remain null", privateEmpty.getPreview())
+        val convertedPublic = privateEmpty.toPublic()
+        assertEquals("", convertedPublic.getPreview())
+        assertTrue("Converted public note preview must be empty", convertedPublic.getPreview().isNullOrEmpty())
+
+        // Copying with empty content leaves preview empty
+        val publicWithContent = PublicNote(title = "Title", content = "Non-empty content")
+        assertFalse(publicWithContent.getPreview().isNullOrEmpty())
+        val clearedCopy = publicWithContent.copyWith(newContent = "")
+        assertEquals("", clearedCopy.getPreview())
+        assertTrue("Copy with empty content must have empty preview", clearedCopy.getPreview().isNullOrEmpty())
+
+        // Copying with whitespace leaves preview empty
+        val whitespaceCopy = publicWithContent.copyWith(newContent = "   \n\t ")
+        assertEquals("", whitespaceCopy.getPreview())
+        assertTrue("Copy with whitespace content must have empty preview", whitespaceCopy.getPreview().isNullOrEmpty())
+    }
+
+    @Test
     fun testEntityDomainRoundTrip() {
         // Public Note
         val publicNote = PublicNote(id = 42L, title = "Round Trip Public", content = "Some content")

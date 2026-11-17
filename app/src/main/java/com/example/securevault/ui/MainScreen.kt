@@ -144,11 +144,13 @@ fun NoteListItemCard(
                 is PublicNote -> {
                     // Title AND preview (short, limited) available; left empty if note has no content
                     val preview = note.getPreview().orEmpty()
-                    Text(
-                        text = preview,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (preview.isNotEmpty()) {
+                        Text(
+                            text = preview,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 is PrivateNote -> {
                     // Title AND NOT a preview of note content

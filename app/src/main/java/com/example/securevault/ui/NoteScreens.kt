@@ -120,12 +120,7 @@ fun NoteMainScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("View Note") },
-                navigationIcon = {
-                    TextButton(onClick = onBack) {
-                        Text("Back")
-                    }
-                }
+                title = { Text("View Note") }
             )
         }
     ) { innerPadding ->
